@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fully connected wireless meshnet topology</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/uikit.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+  <style>
+
+    body {
+      height: auto;
+      margin: 0;
+      background-color: #2E163D;
+    }
+
+    svg {
+      display: block;
+    }
+
+    .node {
+      cursor: pointer;
+      stroke: #E5F1B6;
+      stroke-width: 5;
+      fill: rgba(229, 241, 182, 0.67);
+    }
+
+    .node text {
+      pointer-events: none;
+      font-family: "FontAwesome";
+      font-size: 2.5em;
+      stroke-width: 0;
+      fill: #444;
+    }
+
+    #router text {
+      font-family: "Material Icons";
+    }
+
+    .edge {
+      stroke: #E5F1B6;
+      stroke-width: 5;
+    }
+
+  </style>
+</head>
+<body>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+  <script>
+
+    // Dimensions
+    var width = 960,
+        height = 500,
+        aspect = width / height;
+
+    // Original data
+    var dataset = {
+      nodes: [
+        { name: "Node 0" },
+        { name: "Node 1" },
+        { name: "Node 2" },
+        { name: "Node 3" },
+        { name: "Node 4" },
+        { name: "Node 5" }
+      ],
+      edges: [
+        { source: 0, target: 1 },
+        { source: 0, target: 2 },
+        { source: 0, target: 3 },
+        { source: 0, target: 4 },
+        { source: 0, target: 5 },
+        { source: 1, target: 0 },
+        { source: 1, target: 2 },
+        { source: 1, target: 3 },
+        { source: 1, target: 4 },
+        { source: 1, target: 5 },
+        { source: 2, target: 0 },
+        { source: 2, target: 1 },
+        { source: 2, target: 3 },
+        { source: 2, target: 4 },
+        { source: 2, target: 5 },
+        { source: 3, target: 0 },
+        { source: 3, target: 1 },
+        { source: 3, target: 2 },
+        { source: 3, target: 4 },
+        { source: 3, target: 5 },
+        { source: 4, target: 0 },
+        { source: 4, target: 1 },
+        { source: 4, target: 2 },
+        { source: 4, target: 3 },
+        { source: 4, target: 5 },
+        { source: 5, target: 0 },
+        { source: 5, target: 1 },
+        { source: 5, target: 2 },
+        { source: 5, target: 3 },
+        { source: 5, target: 4 }
+      ]
+    };
+
+    // Create SVG element
+    var svg = d3.select("body")
+                .append("svg")
+                .attr("id", "graph")
+                .attr("preserveAspectRatio", "xMidYMid")
+                .attr("viewBox", "0 0 " + width + " " + height);
+
+    // Initialize a default force layout, using the nodes and edges in dataset
+    var force = d3.layout.force()
+                         .nodes(dataset.nodes)
+                         .links(dataset.edges)
+                         .size([width, height])
+                         .gravity(.05)
+                         .distance(200)
+                         .charge(-400)
+                         .start();
+
+    // Create edges as lines
+    var edge = svg.selectAll(".edge")
+                  .data(dataset.edges)
+                  .enter()
+                  .append("line")
+                  .attr("class", "edge");
+
+    // Create nodes
+    var node = svg.selectAll(".node")
+                  .data(dataset.nodes)
+                  .enter()
+                  .append("g")
+                  .attr("class", "node")
+                  .attr("id", function(d) {
+                    if (d.name == "Node 0")
+                      return "router";
+                  })
+                  .call(force.drag);
+
+    // Draw node circles
+    node.append("circle")
+        .attr("r", 33)
+        .append("title")
+        .text(function(d) {
+          return d.name;
+        });
+
+    // Add node icons
+    node.append("text")
+        .attr("dx", function(d) {
+          if (d.name == "Node 2")
+            return -11;
+          else if (d.name == "Node 3" || d.name == "Node 5")
+            return -8;
+          else return -19;
+        })
+        .attr("dy", function(d) {
+          if (d.name == "Node 2" || d.name == "Node 3" || d.name == "Node 5")
+            return 13;
+          else return 15;
+        })
+        .text(function(d) {
+          if (d.name == "Node 0")
+            return "\uE328";
+          else if (d.name == "Node 1" || d.name == "Node 4")
+            return "\uf108";
+          else if (d.name  == "Node 2")
+            return "\uf10a";
+          else return "\uf10b";
+        })
+
+    // Every time the simulation "ticks", this will be called
+    force.on("tick", function() {
+      edge.attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; });
+
+      node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+    });
+
+    // Scale on window resize
+    $(window).on("resize", function() {
+      var graph = $("#graph"),
+          container = graph.parent(),
+          targetWidth = container.width();
+
+      graph.attr("width", targetWidth);
+      graph.attr("height", targetWidth / aspect);
+    }).trigger("resize");
+
+  </script>
+</body>
+</html>
